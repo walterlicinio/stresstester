@@ -51,9 +51,12 @@ func main() {
 
 	for i := 0; i < numWorkers; i++ {
 		wg.Add(1)
-		go worker(*url, totalRequests/numWorkers, results, &wg)
+		requestsForWorker := totalRequests / numWorkers
+		if i < totalRequests%numWorkers {
+			requestsForWorker++
+		}
+		go worker(*url, requestsForWorker, results, &wg)
 	}
-
 	go func() {
 		wg.Wait()
 		close(results)
@@ -69,8 +72,7 @@ func main() {
 		totalDuration += result.duration
 		if result.statusCode == 200 {
 			status200++
-		}
-		if result.statusCode != 0 {
+		} else {
 			statusCodesCount[result.statusCode]++
 		}
 	}
